@@ -29,6 +29,17 @@ class MoneyQuestApiIntegrationTest {
     @Autowired ObjectMapper objectMapper;
 
     @Test
+    void openApiDocumentationIsPublic() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.info.title").value("MoneyQuest Backend API"))
+            .andExpect(jsonPath("$.paths['/api/runs/{id}'].get.security[0].bearerAuth").isArray());
+
+        mockMvc.perform(get("/swagger-ui/index.html"))
+            .andExpect(status().isOk());
+    }
+
+    @Test
     void publicBootstrapReturnsTokenAndProtectedRunRequiresIt() throws Exception {
         MvcResult questResult = mockMvc.perform(post("/api/quests")
                 .contentType(MediaType.APPLICATION_JSON)

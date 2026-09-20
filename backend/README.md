@@ -15,6 +15,16 @@ Run checks:
 ./mvnw clean verify
 ```
 
+Interactive API documentation is available while the backend is running:
+
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- OpenAPI YAML: `http://localhost:8080/v3/api-docs.yaml`
+
+Use Swagger UI's **Authorize** button with the `accessToken` returned by
+account login/registration or anonymous quest creation. The run endpoints
+will otherwise return `401 UNAUTHORIZED`.
+
 The public bootstrap flow is:
 
 1. `POST /api/quests` with an optional `{"seed": 42}`. Anonymous callers receive a signed bootstrap bearer token in `accessToken`.

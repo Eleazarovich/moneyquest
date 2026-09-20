@@ -4,6 +4,7 @@ import com.moneyquest.api.dto.ApiDtos;
 import com.moneyquest.security.AuthenticatedPrincipal;
 import com.moneyquest.services.GameService;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ import java.util.List;
 @Validated
 @RestController
 @RequestMapping("/api/runs/{id}")
+@SecurityRequirement(name = "bearerAuth")
 public class RunController {
     private final GameService service;
 

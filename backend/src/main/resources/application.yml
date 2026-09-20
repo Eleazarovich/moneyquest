@@ -25,6 +25,15 @@ server:
   error:
     include-message: never
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    persist-authorization: true
+  packages-to-scan: com.moneyquest.api
+  paths-to-match: /api/**
+
 moneyquest:
   jwt:
     secret: ${MONEYQUEST_JWT_SECRET:change-this-development-secret-to-a-long-random-value-at-least-32-bytes}
