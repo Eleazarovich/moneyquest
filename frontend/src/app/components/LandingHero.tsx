@@ -14,7 +14,7 @@ export default function LandingHero() {
   }, []);
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center px-4 overflow-hidden">
+    <section className="relative min-h-[100svh] flex flex-col items-center justify-start md:justify-center px-4 py-8 overflow-hidden">
       {/* Background elements */}
       <div className="absolute inset-0 bg-radial-gold" />
       <div className="absolute inset-0 bg-radial-purple" />
@@ -146,7 +146,7 @@ export default function LandingHero() {
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-float">
+      <div className="relative z-10 mt-8 flex flex-col items-center gap-2 animate-float">
         <span className="text-xs text-muted-foreground">Scroll to learn more</span>
         <div className="w-px h-8 bg-gradient-to-b from-muted-foreground/50 to-transparent" />
       </div>

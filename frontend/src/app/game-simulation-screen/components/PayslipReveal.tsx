@@ -19,7 +19,7 @@ export default function PayslipReveal({ onContinue }: PayslipRevealProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative">
+    <div className="min-h-[100svh] bg-background flex flex-col items-center justify-start md:justify-center px-4 pt-24 pb-8 md:py-20 relative overflow-y-auto">
       <div className="absolute inset-0 bg-radial-gold opacity-60" />
       <div className="relative z-10 max-w-lg w-full">
         <div className="text-center mb-8">
