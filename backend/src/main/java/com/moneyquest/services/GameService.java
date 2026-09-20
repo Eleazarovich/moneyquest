@@ -83,7 +83,6 @@ public class GameService {
         addTransaction(run, generatedTransactions, "PAYE", tax.getPaye().negate(), "PAYE tax deduction", month, cash, now);
         cash = cash.subtract(tax.getUif());
         addTransaction(run, generatedTransactions, "UIF", tax.getUif().negate(), "UIF contribution", month, cash, now);
-        cash = cash.add(tax.getNetSalary()).subtract(run.getGrossIncome().subtract(tax.getPaye()).subtract(tax.getUif()));
         // Salary net is the cash actually received; the preceding payslip rows are explanatory ledger entries.
         cash = run.getAvailableCash().add(tax.getNetSalary());
         addTransaction(run, generatedTransactions, "SALARY_NET", tax.getNetSalary(), "Net salary received", month, cash, now);

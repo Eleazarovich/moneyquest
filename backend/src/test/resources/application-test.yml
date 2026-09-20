@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:./target/test-moneyquest.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
