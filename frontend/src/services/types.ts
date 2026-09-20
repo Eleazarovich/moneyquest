@@ -189,6 +189,7 @@ export interface WhatIfOutcome {
 
 export interface GameService {
   createRun(seed?: number): Promise<PlayerState>;
+  getActiveRun(): Promise<PlayerState | null>;
   getPlayerState(runId: string): Promise<PlayerState>;
   processMonth(runId: string, month: number): Promise<{ events: LifeEvent[]; decisions: Decision[]; transactions: Transaction[] }>;
   makeDecision(runId: string, decisionId: string, optionId: string): Promise<{ newState: PlayerState; moneyMoment?: MoneyMoment }>;
@@ -197,5 +198,5 @@ export interface GameService {
   getWhatIfForks(runId: string): Promise<WhatIfFork[]>;
   simulateWhatIf(runId: string, forkId: string): Promise<WhatIfFork>;
   replayQuest(runId: string): Promise<PlayerState>;
-  getTaxConfiguration(): TaxConfiguration;
+  getTaxConfiguration(): Promise<TaxConfiguration>;
 }

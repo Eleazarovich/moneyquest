@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { gameService } from '@/services';
-import type { PlayerState, LifeEvent, Decision, MoneyMoment } from '@/services/types';
+import type { PlayerState, LifeEvent, Decision, MoneyMoment, TaxConfiguration } from '@/services/types';
 import GameTopbar from '@/components/GameTopbar';
 import MoneyMomentModal from '@/components/MoneyMomentModal';
 import PayslipReveal from './PayslipReveal';
@@ -21,6 +21,7 @@ export default function GameSimulationClient() {
   const [currentDecisions, setCurrentDecisions] = useState<Decision[]>([]);
   const [activeDecision, setActiveDecision] = useState<Decision | null>(null);
   const [moneyMoment, setMoneyMoment] = useState<MoneyMoment | null>(null);
+  const [taxConfiguration, setTaxConfiguration] = useState<TaxConfiguration | null>(null);
   const [localPhase, setLocalPhase] = useState<GamePhaseLocal>('loading');
   const [isProcessing, setIsProcessing] = useState(false);
   const [monthProcessed, setMonthProcessed] = useState(false);
@@ -29,9 +30,12 @@ export default function GameSimulationClient() {
   useEffect(() => {
     async function init() {
       try {
-        const state = await gameService.createRun();
+        const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
+        const tax = await gameService.getTaxConfiguration();
         setPlayerState(state);
-        setLocalPhase('payslip');
+        setTaxConfiguration(tax);
+        setMonthProcessed(state.currentMonth > 0);
+        setLocalPhase(state.currentMonth === 0 ? 'payslip' : 'playing');
       } catch (err) {
         toast.error('Failed to start quest. Please refresh.');
       }
@@ -130,11 +134,11 @@ export default function GameSimulationClient() {
     );
   }
 
-  if (localPhase === 'payslip') {
+  if (localPhase === 'payslip' && taxConfiguration) {
     return (
       <>
         <GameTopbar />
-        <PayslipReveal onContinue={handlePayslipDone} />
+        <PayslipReveal onContinue={handlePayslipDone} taxConfiguration={taxConfiguration} />
       </>
     );
   }

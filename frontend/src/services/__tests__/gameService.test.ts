@@ -6,28 +6,28 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 
 // ─── Test: Tax Configuration ──────────────────────────────────────────────────
 describe('Tax Configuration', () => {
-  it('returns correct 2026/27 gross salary', () => {
-    const tax = mockGameService.getTaxConfiguration();
+  it('returns correct 2026/27 gross salary', async () => {
+    const tax = await mockGameService.getTaxConfiguration();
     expect(tax.grossSalary).toBe(25000);
   });
 
-  it('returns correct PAYE deduction', () => {
-    const tax = mockGameService.getTaxConfiguration();
+  it('returns correct PAYE deduction', async () => {
+    const tax = await mockGameService.getTaxConfiguration();
     expect(tax.paye).toBe(3381.00);
   });
 
-  it('returns correct UIF deduction', () => {
-    const tax = mockGameService.getTaxConfiguration();
+  it('returns correct UIF deduction', async () => {
+    const tax = await mockGameService.getTaxConfiguration();
     expect(tax.uif).toBe(177.12);
   });
 
-  it('calculates correct net salary', () => {
-    const tax = mockGameService.getTaxConfiguration();
+  it('calculates correct net salary', async () => {
+    const tax = await mockGameService.getTaxConfiguration();
     expect(tax.netSalary).toBeCloseTo(21441.88, 2);
   });
 
-  it('net = gross - paye - uif', () => {
-    const tax = mockGameService.getTaxConfiguration();
+  it('net = gross - paye - uif', async () => {
+    const tax = await mockGameService.getTaxConfiguration();
     expect(tax.grossSalary - tax.paye - tax.uif).toBeCloseTo(tax.netSalary, 2);
   });
 });

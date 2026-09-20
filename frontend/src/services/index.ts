@@ -1,5 +1,4 @@
-// Services layer entry point — swap mockGameService for realGameService when backend is ready
-export { mockGameService as gameService } from './mockGameService';
+export { realGameService as gameService } from './realGameService';
 export type {
   GameService,
   PlayerState,

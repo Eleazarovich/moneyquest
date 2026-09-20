@@ -18,16 +18,7 @@ export default function ReplayQuestClient() {
   useEffect(() => {
     async function load() {
       try {
-        // BACKEND INTEGRATION POINT: load from active session
-        const state = await gameService.createRun(77321);
-        for (let m = 1; m <= 12; m++) {
-          await gameService.processMonth(state.runId, m);
-          if (m === 1) await gameService.makeDecision(state.runId, 'decision-housing', 'opt-housing-mid');
-          if (m === 2) await gameService.makeDecision(state.runId, 'decision-phone', 'opt-phone-mid');
-          if (m === 3) await gameService.makeDecision(state.runId, 'decision-transport', 'opt-transport-public');
-          if (m === 4) await gameService.makeDecision(state.runId, 'decision-clothing', 'opt-clothing-basic');
-          if (m === 5) await gameService.makeDecision(state.runId, 'decision-savings', 'opt-savings-serious');
-        }
+        const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
         const ps = await gameService.getPlayerState(state.runId);
         const h = await gameService.getFinancialHealth(state.runId);
         setPlayerState(ps);
@@ -76,7 +67,7 @@ export default function ReplayQuestClient() {
 
   return (
     <div className="min-h-screen bg-background">
-      <GameTopbar currentMonth={12} availableCash={playerState.availableCash} showCash />
+      <GameTopbar currentMonth={playerState.currentMonth} availableCash={playerState.availableCash} showCash />
 
       <main className="pt-20 pb-16 px-4 max-w-screen-2xl mx-auto">
         {/* Header */}

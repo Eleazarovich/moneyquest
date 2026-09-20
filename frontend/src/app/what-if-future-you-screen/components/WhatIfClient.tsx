@@ -19,14 +19,7 @@ export default function WhatIfClient() {
   useEffect(() => {
     async function load() {
       try {
-        // BACKEND INTEGRATION POINT: load active runId from session
-        const state = await gameService.createRun(55443);
-        for (let m = 1; m <= 12; m++) {
-          await gameService.processMonth(state.runId, m);
-          if (m === 1) await gameService.makeDecision(state.runId, 'decision-housing', 'opt-housing-premium');
-          if (m === 2) await gameService.makeDecision(state.runId, 'decision-phone', 'opt-phone-premium');
-          if (m === 5) await gameService.makeDecision(state.runId, 'decision-savings', 'opt-savings-none');
-        }
+        const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
         const ps = await gameService.getPlayerState(state.runId);
         const availableForks = await gameService.getWhatIfForks(state.runId);
         setPlayerState(ps);
@@ -72,7 +65,7 @@ export default function WhatIfClient() {
 
   return (
     <div className="min-h-screen bg-background">
-      <GameTopbar currentMonth={12} availableCash={playerState?.availableCash} showCash />
+      <GameTopbar currentMonth={playerState?.currentMonth} availableCash={playerState?.availableCash} showCash />
 
       <main className="pt-20 pb-16 px-4 max-w-screen-2xl mx-auto">
         <div className="mt-8 mb-10">

@@ -681,7 +681,7 @@ function buildInitialState(runId: string, seed: number): PlayerState {
 // BACKEND INTEGRATION POINT: Replace each method body with a fetch() to the corresponding REST endpoint
 
 export const mockGameService: GameService = {
-  getTaxConfiguration(): TaxConfiguration {
+  async getTaxConfiguration(): Promise<TaxConfiguration> {
     // BACKEND: GET /api/tax-configuration?year=2026-27
     return { ...TAX_CONFIG };
   },
@@ -693,6 +693,11 @@ export const mockGameService: GameService = {
     const state = buildInitialState(runId, resolvedSeed);
     runStore[runId] = state;
     return { ...state };
+  },
+
+  async getActiveRun(): Promise<PlayerState | null> {
+    const runs = Object.values(runStore);
+    return runs.length > 0 ? { ...runs[runs.length - 1] } : null;
   },
 
   async getPlayerState(runId: string): Promise<PlayerState> {

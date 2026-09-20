@@ -1,12 +1,16 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import type { TaxConfiguration } from '@/services/types';
 
 interface PayslipRevealProps {
   onContinue: () => void;
+  taxConfiguration: TaxConfiguration;
 }
 
-export default function PayslipReveal({ onContinue }: PayslipRevealProps) {
+export default function PayslipReveal({ onContinue, taxConfiguration }: PayslipRevealProps) {
   const [step, setStep] = useState(0);
+  const formatAmount = (amount: number) => `R${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const taxYear = taxConfiguration.taxYear.replace('-', '/');
 
   useEffect(() => {
     const timers = [
@@ -50,7 +54,7 @@ export default function PayslipReveal({ onContinue }: PayslipRevealProps) {
                 <div className="text-sm font-500 text-foreground">Gross Salary</div>
                 <div className="text-xs text-muted-foreground">Monthly CTC</div>
               </div>
-              <div className="font-mono font-700 text-lg text-foreground">R25,000.00</div>
+              <div className="font-mono font-700 text-lg text-foreground">{formatAmount(taxConfiguration.grossSalary)}</div>
             </div>
 
             <div className={`space-y-2 transition-all duration-500 delay-200 ${step >= 2 ? 'opacity-100' : 'opacity-0'}`}>
@@ -58,16 +62,16 @@ export default function PayslipReveal({ onContinue }: PayslipRevealProps) {
               <div className="flex justify-between items-center py-1.5">
                 <div>
                   <div className="text-sm text-muted-foreground">PAYE (Income Tax)</div>
-                  <div className="text-xs text-muted-foreground/60">2026/27 tax year</div>
+                  <div className="text-xs text-muted-foreground/60">{taxYear} tax year</div>
                 </div>
-                <div className="font-mono text-sm font-600 text-negative">−R3,381.00</div>
+                <div className="font-mono text-sm font-600 text-negative">−{formatAmount(taxConfiguration.paye)}</div>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-border">
                 <div>
                   <div className="text-sm text-muted-foreground">UIF Contribution</div>
                   <div className="text-xs text-muted-foreground/60">1% of remuneration</div>
                 </div>
-                <div className="font-mono text-sm font-600 text-negative">−R177.12</div>
+                <div className="font-mono text-sm font-600 text-negative">−{formatAmount(taxConfiguration.uif)}</div>
               </div>
             </div>
 
@@ -76,13 +80,13 @@ export default function PayslipReveal({ onContinue }: PayslipRevealProps) {
                 <div className="text-base font-700 text-foreground">Take-Home Pay</div>
                 <div className="text-xs text-muted-foreground">Deposited to your account</div>
               </div>
-              <div className="font-mono font-800 text-2xl text-primary">R21,441.88</div>
+              <div className="font-mono font-800 text-2xl text-primary">{formatAmount(taxConfiguration.netSalary)}</div>
             </div>
           </div>
 
           <div className={`px-6 pb-4 transition-all duration-500 delay-400 ${step >= 3 ? 'opacity-100' : 'opacity-0'}`}>
             <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground leading-relaxed">
-              R25,000 is what you earn. About <span className="text-foreground font-600">R21,442</span> is what reaches you in this scenario. Every rand you see in this quest is your take-home money.
+              {formatAmount(taxConfiguration.grossSalary)} is what you earn. About <span className="text-foreground font-600">{formatAmount(taxConfiguration.netSalary)}</span> is what reaches you in this scenario. Every rand you see in this quest is your take-home money.
             </div>
           </div>
         </div>

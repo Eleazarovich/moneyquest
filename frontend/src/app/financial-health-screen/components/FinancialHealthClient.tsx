@@ -17,17 +17,7 @@ export default function FinancialHealthClient() {
   useEffect(() => {
     async function load() {
       try {
-        // BACKEND INTEGRATION POINT: fetch active runId from session/localStorage
-        const state = await gameService.createRun(12345);
-        // Simulate some play for demo state
-        await gameService.processMonth(state.runId, 1);
-        await gameService.makeDecision(state.runId, 'decision-housing', 'opt-housing-mid');
-        await gameService.processMonth(state.runId, 2);
-        await gameService.makeDecision(state.runId, 'decision-phone', 'opt-phone-premium');
-        await gameService.processMonth(state.runId, 3);
-        await gameService.processMonth(state.runId, 4);
-        await gameService.processMonth(state.runId, 5);
-        await gameService.makeDecision(state.runId, 'decision-savings', 'opt-savings-small');
+        const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
 
         const snap = await gameService.getFinancialHealth(state.runId);
         const ps = await gameService.getPlayerState(state.runId);
