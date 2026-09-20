@@ -32,6 +32,8 @@ public class TransactionEntity {
     }
 
     public void setRun(RunEntity run) { this.run = run; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
+    public void setRunningBalance(BigDecimal runningBalance) { this.runningBalance = runningBalance; }
     public String getId() { return id; }
     public String getType() { return type; }
     public BigDecimal getAmount() { return amount; }

@@ -35,6 +35,7 @@ public class DebtAccountEntity {
 
     public void setRun(RunEntity run) { this.run = run; }
     public void setBalance(BigDecimal balance) { this.balance = balance; }
+    public void setActive(boolean active) { this.active = active; }
     public String getId() { return id; }
     public String getName() { return name; }
     public String getProvider() { return provider; }
