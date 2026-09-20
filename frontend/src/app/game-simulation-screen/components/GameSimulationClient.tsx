@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { gameService } from '@/services';
 import type { PlayerState, LifeEvent, Decision, MoneyMoment, TaxConfiguration } from '@/services/types';
@@ -25,23 +25,46 @@ export default function GameSimulationClient() {
   const [localPhase, setLocalPhase] = useState<GamePhaseLocal>('loading');
   const [isProcessing, setIsProcessing] = useState(false);
   const [monthProcessed, setMonthProcessed] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+  const initializationStarted = useRef(false);
+  const mounted = useRef(false);
 
-  // Initialize run
-  useEffect(() => {
-    async function init() {
-      try {
-        const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
-        const tax = await gameService.getTaxConfiguration();
-        setPlayerState(state);
-        setTaxConfiguration(tax);
-        setMonthProcessed(state.currentMonth > 0);
-        setLocalPhase(state.currentMonth === 0 ? 'payslip' : 'playing');
-      } catch (err) {
-        toast.error('Failed to start quest. Please refresh.');
-      }
+  const initialize = useCallback(async () => {
+    try {
+      const state = (await gameService.getActiveRun()) ?? (await gameService.createRun());
+      const tax = await gameService.getTaxConfiguration();
+      if (!mounted.current) return;
+      setPlayerState(state);
+      setTaxConfiguration(tax);
+      setMonthProcessed(state.currentMonth > 0);
+      setLocalPhase(state.currentMonth === 0 ? 'payslip' : 'playing');
+    } catch (err) {
+      if (!mounted.current) return;
+      const message = err instanceof Error && err.message
+        ? err.message
+        : 'The game server could not be reached.';
+      setInitializationError(message);
+      toast.error('Failed to start quest', { description: message });
     }
-    init();
   }, []);
+
+  // Initialize run once. The ref prevents duplicate quest creation in React strict mode.
+  useEffect(() => {
+    mounted.current = true;
+    if (!initializationStarted.current) {
+      initializationStarted.current = true;
+      void initialize();
+    }
+
+    return () => { mounted.current = false; };
+  }, [initialize]);
+
+  function retryInitialization() {
+    initializationStarted.current = true;
+    setInitializationError(null);
+    setLocalPhase('loading');
+    void initialize();
+  }
 
   const processCurrentMonth = useCallback(async (state: PlayerState, month: number) => {
     if (isProcessing || monthProcessed) return;
@@ -120,6 +143,25 @@ export default function GameSimulationClient() {
     } finally {
       setIsProcessing(false);
     }
+  }
+
+  if (initializationError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-4">⚠️</div>
+          <div className="text-lg font-600 text-foreground mb-2">We couldn’t start your quest</div>
+          <div className="text-sm text-muted-foreground mb-6">{initializationError}</div>
+          <button
+            type="button"
+            onClick={retryInitialization}
+            className="px-5 py-3 bg-primary text-primary-foreground rounded-xl font-600 hover:bg-primary/90 transition-colors"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (localPhase === 'loading' || !playerState) {
