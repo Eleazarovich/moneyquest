@@ -11,6 +11,7 @@ import java.time.Instant;
 @Table(name = "quests")
 public class QuestEntity {
     @Id
+    @Column(length = 36)
     private String id;
 
     @Column(name = "owner_subject", nullable = false, length = 100)

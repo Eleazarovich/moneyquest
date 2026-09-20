@@ -10,16 +10,16 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "life_events")
 public class LifeEventEntity {
-    @Id private String id;
+    @Id @Column(length = 100) private String id;
     @Column(nullable = false) private int month;
-    @Column(name = "event_type", nullable = false) private String type;
+    @Column(name = "event_type", nullable = false, length = 30) private String type;
     @Column(nullable = false) private String title;
     @Column(nullable = false, columnDefinition = "TEXT") private String narrative;
-    @Column(nullable = false) private String emoji;
+    @Column(nullable = false, length = 20) private String emoji;
     @Column(name = "cash_effect", precision = 14, scale = 2) private BigDecimal cashEffect;
     @Column(name = "transaction_type", length = 40) private String transactionType;
     @Column(name = "triggers_decision", nullable = false) private boolean triggersDecision;
-    @Column(name = "decision_id") private String decisionId;
+    @Column(name = "decision_id", length = 100) private String decisionId;
     @Column(nullable = false, precision = 5, scale = 4) private BigDecimal probability;
 
     protected LifeEventEntity() { }

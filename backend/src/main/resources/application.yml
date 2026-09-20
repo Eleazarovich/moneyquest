@@ -1,11 +1,8 @@
 spring:
   application:
     name: moneyquest-backend
-  datasource:
-    url: ${DATABASE_URL:jdbc:sqlite:./data/moneyquest.db}
-    driver-class-name: ${DATABASE_DRIVER:org.sqlite.JDBC}
-    username: ${DATABASE_USERNAME:}
-    password: ${DATABASE_PASSWORD:}
+  profiles:
+    default: dev
   jpa:
     open-in-view: false
     hibernate:
@@ -14,10 +11,11 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
-        dialect: ${HIBERNATE_DIALECT:org.hibernate.community.dialect.SQLiteDialect}
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
   flyway:
     enabled: true
-    baseline-on-migrate: true
+    validate-on-migrate: true
   jackson:
     default-property-inclusion: non_null
 
@@ -40,20 +38,3 @@ moneyquest:
     expiration: ${MONEYQUEST_JWT_EXPIRATION:PT12H}
   cors:
     allowed-origins: ${MONEYQUEST_CORS_ORIGINS:http://localhost:3000,http://localhost:4028,http://127.0.0.1:3000,http://127.0.0.1:4028}
-
----
-spring:
-  config:
-    activate:
-      on-profile: postgres
-  datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/moneyquest}
-    driver-class-name: org.postgresql.Driver
-    username: ${DATABASE_USERNAME:moneyquest}
-    password: ${DATABASE_PASSWORD:moneyquest}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect

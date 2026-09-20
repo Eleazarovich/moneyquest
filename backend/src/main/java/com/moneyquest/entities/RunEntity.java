@@ -17,6 +17,7 @@ import java.util.List;
 @Table(name = "runs")
 public class RunEntity {
     @Id
+    @Column(length = 36)
     private String id;
 
     @Column(name = "quest_id", nullable = false, unique = true, length = 36)

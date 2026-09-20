@@ -8,12 +8,12 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "decisions")
 public class DecisionEntity {
-    @Id private String id;
+    @Id @Column(length = 100) private String id;
     @Column(nullable = false) private String title;
     @Column(nullable = false, columnDefinition = "TEXT") private String narrative;
     @Column(nullable = false, columnDefinition = "TEXT") private String context;
     @Column(nullable = false) private int month;
-    @Column(nullable = false) private String category;
+    @Column(nullable = false, length = 100) private String category;
     @Column(name = "options_json", nullable = false, columnDefinition = "TEXT") private String optionsJson;
 
     protected DecisionEntity() { }

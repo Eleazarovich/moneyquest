@@ -14,13 +14,14 @@ import java.math.BigDecimal;
 @Table(name = "recurring_commitments")
 public class RecurringCommitmentEntity {
     @Id
+    @Column(length = 36)
     private String id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "run_id", nullable = false)
     private RunEntity run;
     @Column(nullable = false) private String name;
     @Column(nullable = false, precision = 14, scale = 2) private BigDecimal amount;
-    @Column(nullable = false) private String category;
+    @Column(nullable = false, length = 100) private String category;
     @Column(name = "start_month", nullable = false) private int startMonth;
     @Column(name = "end_month") private Integer endMonth;
     @Column(nullable = false) private boolean active;

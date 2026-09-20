@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "debt_accounts")
 public class DebtAccountEntity {
-    @Id private String id;
+    @Id @Column(length = 36) private String id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "run_id", nullable = false) private RunEntity run;
     @Column(nullable = false) private String name;
     @Column(nullable = false) private String provider;

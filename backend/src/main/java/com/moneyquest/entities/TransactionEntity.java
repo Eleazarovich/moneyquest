@@ -14,7 +14,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "transactions")
 public class TransactionEntity {
-    @Id private String id;
+    @Id @Column(length = 36) private String id;
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "run_id", nullable = false) private RunEntity run;
     @Column(nullable = false, length = 40) private String type;
     @Column(nullable = false, precision = 14, scale = 2) private BigDecimal amount;
