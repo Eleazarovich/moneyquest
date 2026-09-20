@@ -1,0 +1,983 @@
+openapi: 3.0.3
+info:
+  title: MoneyQuest Backend API
+  version: 0.1.0
+  description: |
+    Backend contract expected by the MoneyQuest frontend service layer.
+
+    The checked-in frontend currently uses an in-memory mock service. Its
+    integration comments and TypeScript domain types define this contract.
+    Creating a run is a two-request flow: create a quest, then start it.
+
+    The current UI has no authentication transport because it is using the
+    mock service. This specification makes the intended production boundary
+    explicit: tax configuration and anonymous quest bootstrap are public;
+    operations on an existing run require a bearer token.
+servers:
+  - url: /
+    description: Same-origin API
+
+tags:
+  - name: Configuration
+  - name: Quests
+  - name: Runs
+
+paths:
+  /api/tax-configuration:
+    get:
+      tags: [Configuration]
+      summary: Get tax configuration
+      operationId: getTaxConfiguration
+      description: Returns the tax configuration used by the payslip and simulation.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TaxYear'
+      responses:
+        '200':
+          description: Tax configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxConfiguration'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/quests:
+    post:
+      tags: [Quests]
+      summary: Create a quest
+      operationId: createQuest
+      description: Creates the quest resource used by the subsequent start request.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuestRequest'
+      responses:
+        '201':
+          description: Quest created. Use the returned id in the start request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/quests/{id}/start:
+    post:
+      tags: [Quests]
+      summary: Start a quest
+      operationId: startQuest
+      description: Starts a created quest and returns its initial player state.
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/QuestId'
+      responses:
+        '200':
+          description: Initial player state for the new run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerState'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}:
+    get:
+      tags: [Runs]
+      summary: Get player state
+      operationId: getPlayerState
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Current state of the run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}/next-event:
+    get:
+      tags: [Runs]
+      summary: Process a month
+      operationId: processMonth
+      description: |
+        Processes payday, recurring commitments, debt repayments, and the
+        eligible events and decisions for the requested month.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/Month'
+      responses:
+        '200':
+          description: Events, decisions, and transactions generated for the month.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessMonthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}/decisions/{decisionId}:
+    post:
+      tags: [Runs]
+      summary: Submit a decision
+      operationId: makeDecision
+      description: Applies the selected option to a decision in the run.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+        - $ref: '#/components/parameters/DecisionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MakeDecisionRequest'
+      responses:
+        '200':
+          description: Updated player state and an optional money moment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MakeDecisionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Decision was already completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/runs/{id}/financial-health:
+    get:
+      tags: [Runs]
+      summary: Get financial health
+      operationId: getFinancialHealth
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Financial health snapshot for the current run month.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialHealthSnapshot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}/year-in-money:
+    get:
+      tags: [Runs]
+      summary: Get year-in-money summary
+      operationId: getYearInMoney
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Annual summary and monthly breakdown for the run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YearInMoneySummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}/what-if:
+    get:
+      tags: [Runs]
+      summary: List what-if forks
+      operationId: getWhatIfForks
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Alternative scenarios available for the run.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WhatIfFork'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [Runs]
+      summary: Simulate a what-if fork
+      operationId: simulateWhatIf
+      description: Simulates a selected fork without mutating the original run.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulateWhatIfRequest'
+      responses:
+        '200':
+          description: Computed original and alternative outcomes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatIfFork'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/runs/{id}/replay:
+    post:
+      tags: [Runs]
+      summary: Replay a quest
+      operationId: replayQuest
+      description: Creates and returns a new initial run derived from the existing run's seed.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/RunId'
+      responses:
+        '200':
+          description: Initial player state for the replay run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerState'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TaxYear:
+      name: year
+      in: query
+      required: false
+      description: Tax year requested by the frontend. Defaults to 2026-27.
+      schema:
+        type: string
+        default: 2026-27
+        example: 2026-27
+    QuestId:
+      name: id
+      in: path
+      required: true
+      description: Identifier returned by `POST /api/quests`.
+      schema:
+        type: string
+    RunId:
+      name: id
+      in: path
+      required: true
+      description: Run identifier.
+      schema:
+        type: string
+    DecisionId:
+      name: decisionId
+      in: path
+      required: true
+      description: Decision identifier.
+      schema:
+        type: string
+    Month:
+      name: month
+      in: query
+      required: true
+      description: Simulation month to process.
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 12
+
+  responses:
+    BadRequest:
+      description: The request is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Authentication is required or the bearer token is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: The authenticated caller cannot access this run.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: The requested quest, run, decision, or fork was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+
+    CreateQuestRequest:
+      type: object
+      description: Optional deterministic seed accepted by `createRun(seed?)`.
+      additionalProperties: false
+      properties:
+        seed:
+          type: integer
+          format: int32
+          description: Seed used to make event selection reproducible.
+
+    Quest:
+      type: object
+      required: [id]
+      properties:
+        id:
+          type: string
+          description: Quest identifier used to start the quest.
+
+    TaxConfiguration:
+      type: object
+      required: [taxYear, grossSalary, paye, uif, netSalary]
+      properties:
+        taxYear:
+          type: string
+          example: 2026/27
+        grossSalary:
+          type: number
+          format: double
+        paye:
+          type: number
+          format: double
+        uif:
+          type: number
+          format: double
+        netSalary:
+          type: number
+          format: double
+
+    ProcessMonthResponse:
+      type: object
+      required: [events, decisions, transactions]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/LifeEvent'
+        decisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Decision'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+
+    MakeDecisionRequest:
+      type: object
+      required: [optionId]
+      additionalProperties: false
+      properties:
+        optionId:
+          type: string
+          description: Identifier of the selected decision option.
+
+    MakeDecisionResponse:
+      type: object
+      required: [newState]
+      properties:
+        newState:
+          $ref: '#/components/schemas/PlayerState'
+        moneyMoment:
+          $ref: '#/components/schemas/MoneyMoment'
+
+    SimulateWhatIfRequest:
+      type: object
+      required: [forkId]
+      additionalProperties: false
+      properties:
+        forkId:
+          type: string
+          description: Identifier of the fork to simulate.
+
+    HealthState:
+      type: string
+      enum: [Strong, Healthy, Stable, Building, Vulnerable, Critical]
+
+    TransactionType:
+      type: string
+      enum:
+        - SALARY_GROSS
+        - PAYE
+        - UIF
+        - SALARY_NET
+        - RENT
+        - UTILITIES
+        - TRANSPORT
+        - GROCERIES
+        - ENTERTAINMENT
+        - FAMILY_SUPPORT
+        - PURCHASE
+        - DEBT_DISBURSEMENT
+        - DEBT_REPAYMENT
+        - SAVINGS_TRANSFER
+        - EMERGENCY_EXPENSE
+        - SIDE_INCOME
+        - BONUS
+        - REFUND
+
+    Transaction:
+      type: object
+      required: [id, type, amount, description, month, timestamp, runningBalance]
+      properties:
+        id:
+          type: string
+        type:
+          $ref: '#/components/schemas/TransactionType'
+        amount:
+          type: number
+          format: double
+        description:
+          type: string
+        month:
+          type: integer
+          format: int32
+        timestamp:
+          type: string
+          format: date-time
+        runningBalance:
+          type: number
+          format: double
+
+    RecurringCommitment:
+      type: object
+      required: [id, name, amount, category, startMonth, active]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        amount:
+          type: number
+          format: double
+        category:
+          type: string
+        startMonth:
+          type: integer
+          format: int32
+        endMonth:
+          type: integer
+          format: int32
+        active:
+          type: boolean
+
+    DebtAccount:
+      type: object
+      required: [id, name, provider, principal, balance, monthlyRepayment, interestRate, startMonth, active]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        provider:
+          type: string
+        principal:
+          type: number
+          format: double
+        balance:
+          type: number
+          format: double
+        monthlyRepayment:
+          type: number
+          format: double
+        interestRate:
+          type: number
+          format: double
+        startMonth:
+          type: integer
+          format: int32
+        active:
+          type: boolean
+
+    SavingsBucket:
+      type: object
+      required: [id, name, balance, monthlyContribution, isEmergencyFund]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        balance:
+          type: number
+          format: double
+        monthlyContribution:
+          type: number
+          format: double
+        isEmergencyFund:
+          type: boolean
+
+    DecisionOption:
+      type: object
+      required: [id, label, description, cost, emoji]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        cost:
+          type: number
+          format: double
+        monthlyCommitment:
+          type: number
+          format: double
+        commitmentName:
+          type: string
+        emoji:
+          type: string
+        tag:
+          type: string
+        lifestyle:
+          type: string
+        debtOffer:
+          $ref: '#/components/schemas/DebtOffer'
+
+    DebtOffer:
+      type: object
+      required: [provider, depositRequired, monthlyRepayment, term]
+      properties:
+        provider:
+          type: string
+        depositRequired:
+          type: number
+          format: double
+        monthlyRepayment:
+          type: number
+          format: double
+        term:
+          type: integer
+          format: int32
+
+    Decision:
+      type: object
+      required: [id, title, narrative, context, options, month, category]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        narrative:
+          type: string
+        context:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/DecisionOption'
+        month:
+          type: integer
+          format: int32
+        category:
+          type: string
+
+    LifeEvent:
+      type: object
+      required: [id, month, type, title, narrative, emoji, probability]
+      properties:
+        id:
+          type: string
+        month:
+          type: integer
+          format: int32
+        type:
+          type: string
+          enum: [social, family, career, unexpected, relationship, income_shock]
+        title:
+          type: string
+        narrative:
+          type: string
+        emoji:
+          type: string
+        cashEffect:
+          type: number
+          format: double
+        transactionType:
+          $ref: '#/components/schemas/TransactionType'
+        triggersDecision:
+          type: boolean
+        decisionId:
+          type: string
+        probability:
+          type: number
+          format: double
+
+    MoneyMoment:
+      type: object
+      required: [id, title, narrative, insight, emoji, triggerCondition]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        narrative:
+          type: string
+        insight:
+          type: string
+        emoji:
+          type: string
+        triggerCondition:
+          type: string
+        visualData:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+
+    HealthDimension:
+      type: object
+      required: [state, value, explanation]
+      properties:
+        state:
+          $ref: '#/components/schemas/HealthState'
+        value:
+          type: number
+          format: double
+        explanation:
+          type: string
+
+    FinancialHealthSnapshot:
+      type: object
+      required: [month, resilience, liquidity, debtLoad, savingHabit, lifestyleBalance]
+      properties:
+        month:
+          type: integer
+          format: int32
+        resilience:
+          $ref: '#/components/schemas/HealthDimension'
+        liquidity:
+          $ref: '#/components/schemas/HealthDimension'
+        debtLoad:
+          $ref: '#/components/schemas/HealthDimension'
+        savingHabit:
+          $ref: '#/components/schemas/HealthDimension'
+        lifestyleBalance:
+          $ref: '#/components/schemas/HealthDimension'
+
+    PlayerState:
+      type: object
+      required:
+        - runId
+        - seed
+        - currentMonth
+        - availableCash
+        - totalSavings
+        - grossIncome
+        - netIncome
+        - recurringCommitments
+        - debts
+        - savingsBuckets
+        - transactions
+        - decisionsCompleted
+        - eventsExperienced
+        - moneyMomentsSeen
+        - monthlySpendByCategory
+        - spendByCategory
+        - isEmployed
+        - monthsWithSavings
+        - gamePhase
+      properties:
+        runId:
+          type: string
+        seed:
+          type: integer
+          format: int32
+        currentMonth:
+          type: integer
+          format: int32
+        availableCash:
+          type: number
+          format: double
+        totalSavings:
+          type: number
+          format: double
+        grossIncome:
+          type: number
+          format: double
+        netIncome:
+          type: number
+          format: double
+        recurringCommitments:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecurringCommitment'
+        debts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DebtAccount'
+        savingsBuckets:
+          type: array
+          items:
+            $ref: '#/components/schemas/SavingsBucket'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        decisionsCompleted:
+          type: array
+          items:
+            type: string
+        eventsExperienced:
+          type: array
+          items:
+            type: string
+        moneyMomentsSeen:
+          type: array
+          items:
+            type: string
+        housingChoice:
+          type: string
+        transportChoice:
+          type: string
+        phoneChoice:
+          type: string
+        monthlySpendByCategory:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        spendByCategory:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        isEmployed:
+          type: boolean
+        monthsWithSavings:
+          type: integer
+          format: int32
+        gamePhase:
+          type: string
+          enum: [landing, payslip, playing, health_check, year_in_money, what_if, replay]
+
+    MonthSummary:
+      type: object
+      required: [month, label, grossIncome, netIncome, totalCommitted, totalDebtRepayments, totalSpent, availableAtEnd, savings, events, decisions]
+      properties:
+        month:
+          type: integer
+          format: int32
+        label:
+          type: string
+        grossIncome:
+          type: number
+          format: double
+        netIncome:
+          type: number
+          format: double
+        totalCommitted:
+          type: number
+          format: double
+        totalDebtRepayments:
+          type: number
+          format: double
+        totalSpent:
+          type: number
+          format: double
+        availableAtEnd:
+          type: number
+          format: double
+        savings:
+          type: number
+          format: double
+        events:
+          type: array
+          items:
+            type: string
+        decisions:
+          type: array
+          items:
+            type: string
+
+    AnnualisedSurprise:
+      type: object
+      required: [label, monthly, annual, description]
+      properties:
+        label:
+          type: string
+        monthly:
+          type: number
+          format: double
+        annual:
+          type: number
+          format: double
+        description:
+          type: string
+
+    KeyDecision:
+      type: object
+      required: [month, title, choice, impact]
+      properties:
+        month:
+          type: integer
+          format: int32
+        title:
+          type: string
+        choice:
+          type: string
+        impact:
+          type: string
+
+    YearInMoneySummary:
+      type: object
+      required: [totalGrossIncome, totalNetIncome, totalSpent, totalSaved, finalDebt, totalDebtRepaid, spendByCategory, annualisedSurprises, keyDecisions, monthlyBreakdown]
+      properties:
+        totalGrossIncome:
+          type: number
+          format: double
+        totalNetIncome:
+          type: number
+          format: double
+        totalSpent:
+          type: number
+          format: double
+        totalSaved:
+          type: number
+          format: double
+        finalDebt:
+          type: number
+          format: double
+        totalDebtRepaid:
+          type: number
+          format: double
+        spendByCategory:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+        annualisedSurprises:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnnualisedSurprise'
+        keyDecisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyDecision'
+        monthlyBreakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/MonthSummary'
+
+    WhatIfOutcome:
+      type: object
+      required: [finalCash, finalSavings, finalDebt, totalSpent, monthlyAvailable, debtFree, emergencyCoverage]
+      properties:
+        finalCash:
+          type: number
+          format: double
+        finalSavings:
+          type: number
+          format: double
+        finalDebt:
+          type: number
+          format: double
+        totalSpent:
+          type: number
+          format: double
+        monthlyAvailable:
+          type: number
+          format: double
+        debtFree:
+          type: boolean
+        emergencyCoverage:
+          type: number
+          format: double
+
+    WhatIfFork:
+      type: object
+      required: [id, title, description, forkMonth, originalChoice, alternativeChoice, originalOutcome, alternativeOutcome]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        forkMonth:
+          type: integer
+          format: int32
+        originalChoice:
+          type: string
+        alternativeChoice:
+          type: string
+        originalOutcome:
+          $ref: '#/components/schemas/WhatIfOutcome'
+        alternativeOutcome:
+          $ref: '#/components/schemas/WhatIfOutcome'
