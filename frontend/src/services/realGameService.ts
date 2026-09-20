@@ -35,6 +35,9 @@ const ACTIVE_SESSION_KEY = 'moneyquest.active-session';
 const DEFAULT_API_BASE_URL = 'http://localhost:8080';
 
 function apiBaseUrl() {
+  // In local development, use the same-origin Next.js proxy so the browser does
+  // not need to make a cross-origin request to the backend.
+  if (process.env.NODE_ENV === 'development') return '';
   return (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, '');
 }
 
