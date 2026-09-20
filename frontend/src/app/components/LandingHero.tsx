@@ -145,11 +145,6 @@ export default function LandingHero() {
         </p>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="relative z-10 mt-8 flex flex-col items-center gap-2 animate-float">
-        <span className="text-xs text-muted-foreground">Scroll to learn more</span>
-        <div className="w-px h-8 bg-gradient-to-b from-muted-foreground/50 to-transparent" />
-      </div>
     </section>
   );
 }

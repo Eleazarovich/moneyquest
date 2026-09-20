@@ -27,7 +27,8 @@ export const metadata: Metadata = {
   title: 'MoneyQuest — Live Your Financial Year Before It Happens',
   description: 'An interactive 12-month financial life simulation for young South African professionals. Make real choices, experience real consequences, learn money before it matters.',
   icons: {
-    icon: [{ url: '/favicon.ico', type: 'image/x-icon' }],
+    icon: [{ url: '/assets/images/app_logo.png', type: 'image/png' }],
+    apple: '/assets/images/app_logo.png',
   },
 };
 
