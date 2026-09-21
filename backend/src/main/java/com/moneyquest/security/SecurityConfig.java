@@ -47,6 +47,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
                     "/webjars/**", "/api/auth/**", "/api/tax-configuration", "/api/quests/**").permitAll()
+                .requestMatchers("/", "/index.html", "/favicon.ico", "/assets/**", "/_next/**",
+                    "/financial-health-screen", "/financial-health-screen/**",
+                    "/game-simulation-screen", "/game-simulation-screen/**",
+                    "/replay-quest-screen", "/replay-quest-screen/**",
+                    "/what-if-future-you-screen", "/what-if-future-you-screen/**",
+                    "/year-in-money-screen", "/year-in-money-screen/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated())
             .exceptionHandling(exceptions -> exceptions
