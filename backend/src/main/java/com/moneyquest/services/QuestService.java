@@ -57,7 +57,7 @@ public class QuestService {
             Instant now = Instant.now();
             run = new RunEntity(UUID.randomUUID().toString(), questId, quest.getOwnerSubject(), quest.getSeed(),
                 tax.getGrossSalary(), tax.getNetSalary(), now);
-            run.addSavingsBucket(new SavingsBucketEntity("bucket-emergency-" + run.getId(), "Emergency Fund", BigDecimal.ZERO, BigDecimal.ZERO, true));
+            run.addSavingsBucket(new SavingsBucketEntity(UUID.randomUUID().toString(), "Emergency Fund", BigDecimal.ZERO, BigDecimal.ZERO, true));
             quest.markStarted();
             questRepository.save(quest);
             runRepository.save(run);

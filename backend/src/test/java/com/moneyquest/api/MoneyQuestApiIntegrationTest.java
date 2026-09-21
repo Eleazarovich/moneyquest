@@ -66,6 +66,7 @@ class MoneyQuestApiIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.currentMonth").value(0))
             .andExpect(jsonPath("$.grossIncome").value(25000.0))
+            .andExpect(jsonPath("$.savingsBuckets[0].id").value(org.hamcrest.Matchers.hasLength(36)))
             .andReturn();
         JsonNode state = objectMapper.readTree(startResult.getResponse().getContentAsString());
         String runId = state.get("runId").asText();

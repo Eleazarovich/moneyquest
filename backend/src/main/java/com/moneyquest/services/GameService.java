@@ -235,7 +235,7 @@ public class GameService {
         quest.markStarted(); questRepository.save(quest);
         RunEntity fresh = new RunEntity(UUID.randomUUID().toString(), questId, oldRun.getOwnerSubject(), newSeed,
             oldRun.getGrossIncome(), oldRun.getNetIncome(), Instant.now());
-        fresh.addSavingsBucket(new SavingsBucketEntity("bucket-emergency-" + fresh.getId(), "Emergency Fund", ZERO, ZERO, true));
+        fresh.addSavingsBucket(new SavingsBucketEntity(UUID.randomUUID().toString(), "Emergency Fund", ZERO, ZERO, true));
         runRepository.save(fresh);
         return mapper.state(fresh);
     }
