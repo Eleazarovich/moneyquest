@@ -10,46 +10,6 @@ The goal is simple: make money feel understandable before the decisions become e
 **Hosted demo:** Not deployed yet; run the complete app locally with Docker Compose.<br>
 **API contract:** [`openapi.yaml`](openapi.yaml)
 
-**Stack:** Java 21 · Spring Boot 3.5 · Spring Security · JPA/Hibernate · Flyway · SQLite · PostgreSQL · Next.js 15 · TypeScript · Tailwind CSS · Docker · JUnit 5 · Testcontainers
-
-## Engineering snapshot
-
-MoneyQuest is a portfolio-scale full-stack project that demonstrates end-to-end ownership: shaping a user-facing product, designing a secured API, persisting state across databases, packaging the system for deployment, and verifying the running stack over HTTP.
-
-The strongest signals in this repository are:
-
-- **Backend engineering:** transactional Spring services model months, decisions, recurring commitments, debt, savings, transactions, and financial-health calculations.
-- **API design:** the checked-in OpenAPI contract, generated Swagger UI, explicit request/response DTOs, structured errors, and predictable state transitions make the backend easy to inspect and integrate.
-- **Security:** JWT bearer authentication, BCrypt password hashing, CORS configuration, anonymous quest bootstrap, account login, and run-ownership enforcement are covered in code and tests.
-- **Persistence and portability:** JPA/Hibernate sits above SQLite for development and PostgreSQL for production, with Flyway owning schema evolution and Testcontainers verifying the PostgreSQL path.
-- **Full-stack delivery:** the Next.js client uses the real backend API, while the multi-stage Docker build exports the frontend and serves it from the Spring Boot application.
-- **Verification mindset:** unit-level service fixtures, MockMvc API integration tests, PostgreSQL persistence tests, and an opt-in black-box Docker Compose suite cover different failure boundaries.
-
-## Recent engineering work
-
-Recent work in this repository has focused on moving from a frontend prototype toward a production-shaped, testable full-stack system:
-
-| Focus | What changed | Evidence |
-| --- | --- | --- |
-| Real frontend-to-backend integration | Replaced the selected in-memory client with a typed REST client that manages quest sessions, bearer tokens, API errors, and the same-origin production path. | [`realGameService.ts`](frontend/src/services/realGameService.ts) · [integration commit](https://github.com/Eleazarovich/moneyquest/commit/aac6708) |
-| Contract-first API and security | Added the OpenAPI contract and Swagger UI, then secured run access with JWTs, BCrypt accounts, CORS, ownership checks, and structured `401`/`403` errors. | [`openapi.yaml`](openapi.yaml) · [`security/`](backend/src/main/java/com/moneyquest/security) · [API docs commit](https://github.com/Eleazarovich/moneyquest/commit/29f1901) |
-| Environment parity and packaging | Added SQLite development and PostgreSQL production profiles, Flyway migrations, a root Docker Compose stack, and a multi-stage image that serves the exported frontend from Spring Boot. | [`application-dev.yml`](backend/src/main/resources/application-dev.yml) · [`application-prod.yml`](backend/src/main/resources/application-prod.yml) · [`Dockerfile`](Dockerfile) |
-| Black-box end-to-end verification | Added an opt-in HTTP suite that builds an isolated Compose stack and checks startup, seed data, CORS, anonymous and account auth, ownership boundaries, month/decision rules, analytics, what-if/replay flows, and persistence across app restart. | [`DockerComposeApiIntegrationTest.java`](backend/src/test/java/com/moneyquest/api/DockerComposeApiIntegrationTest.java) · [`make e2e`](Makefile) · [latest test commit](https://github.com/Eleazarovich/moneyquest/commit/b326b3c) |
-
-## Skills shown in this repository
-
-| Skill area | Evidence |
-| --- | --- |
-| Java and Spring Boot | Java 21 domain model, REST controllers, validation, transactional services, exception handling, and Spring configuration. |
-| REST API engineering | OpenAPI 3 contract, DTO mapping, resource-oriented routes, status codes, idempotent month processing, and Swagger UI. |
-| Application security | Stateless JWT authentication, BCrypt credentials, public/private route boundaries, CORS, token parsing, and resource ownership enforcement. |
-| Data and persistence | Spring Data repositories, JPA/Hibernate entities, Flyway migrations, SQLite/PostgreSQL profiles, and database portability decisions. |
-| Testing | JUnit 5, MockMvc integration tests, Testcontainers PostgreSQL coverage, and black-box HTTP testing against Docker Compose. |
-| Frontend engineering | Next.js App Router, React, TypeScript domain types, typed API client, browser session persistence, responsive screens, charts, and Tailwind CSS. |
-| Docker and delivery | Multi-stage image builds, PostgreSQL health checks, environment-driven configuration, static frontend export, and isolated integration environments. |
-| Product and domain modeling | A stateful financial simulation with seeded events, recurring commitments, debt accounts, savings buckets, financial-health dimensions, and alternative-outcome analysis. |
-| Developer experience | Maven Wrapper, Makefile workflows, local SQLite defaults, reproducible seeds, API documentation, focused tests, and implementation-aware README documentation. |
-
 ## Why MoneyQuest exists
 
 Personal finance is often taught as a list of rules, but real decisions are connected. A more expensive home changes what is affordable next month. A phone contract becomes a future commitment. A family emergency tests whether savings are available when they are needed.
@@ -169,14 +129,6 @@ curl -sS -X POST http://localhost:8080/api/quests/<quest-id>/start
 
 Protected run endpoints include current state, month processing, decisions, financial health, year-in-money, what-if simulations, and replay. The API also exposes `POST /api/auth/register` and `POST /api/auth/login`; passwords are stored with BCrypt.
 
-| Boundary | Representative routes | Responsibility |
-| --- | --- | --- |
-| Authentication | `POST /api/auth/register` · `POST /api/auth/login` | Create accounts and issue bearer tokens. |
-| Quest bootstrap | `POST /api/quests` · `POST /api/quests/{id}/start` | Create a seeded quest and initialise its run. |
-| Simulation | `GET /api/runs/{id}/next-event` · `POST /api/runs/{id}/decisions/{decisionId}` | Advance the month and apply player choices. |
-| Analysis | `GET /api/runs/{id}/financial-health` · `GET /api/runs/{id}/year-in-money` | Turn persisted state into explainable financial summaries. |
-| Counterfactuals | `GET/POST /api/runs/{id}/what-if` · `POST /api/runs/{id}/replay` | Compare alternative choices and start a new run. |
-
 ## Configuration
 
 ### Backend
@@ -263,11 +215,10 @@ Run these from the repository root unless noted otherwise:
 | `make package` | Build the backend executable JAR. |
 | `make docker-up` | Build and start the PostgreSQL-backed application stack. |
 | `make docker-down` | Stop the Docker Compose services. |
-| `make e2e` | Build an isolated Docker Compose stack and run black-box HTTP integration tests. |
 | `cd frontend && npm run type-check` | Run the TypeScript compiler without emitting files. |
 | `cd frontend && npm run build` | Build the static Next.js export. |
 
-The PostgreSQL integration test uses Testcontainers and is skipped when Docker is unavailable. The backend API integration tests run against the SQLite test profile. The Docker Compose suite is intentionally opt-in because it builds containers and starts a real PostgreSQL-backed application; run it with `make e2e` when Docker is available.
+The PostgreSQL integration test uses Testcontainers and is skipped when Docker is unavailable. The backend API integration tests run against the SQLite test profile.
 
 ## Technical decisions
 
