@@ -27,8 +27,8 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 
 WORKDIR /app
 RUN addgroup -S spring && adduser -S -G spring spring \
-    && mkdir -p /app/data \
-    && chown -R spring:spring /app
+    && mkdir -p /app /data \
+    && chown -R spring:spring /app /data
 
 COPY --from=backend-build --chown=spring:spring \
     /workspace/backend/target/moneyquest-backend-*.jar /app/app.jar
