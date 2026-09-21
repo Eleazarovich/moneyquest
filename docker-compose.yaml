@@ -27,7 +27,7 @@ services:
       DATABASE_URL: jdbc:postgresql://postgres:5432/moneyquest
       DATABASE_USERNAME: moneyquest
       DATABASE_PASSWORD: moneyquest
-      MONEYQUEST_JWT_SECRET: change-this-in-production
+      MONEYQUEST_JWT_SECRET: ${MONEYQUEST_JWT_SECRET:-moneyquest-local-development-jwt-secret-32-bytes-minimum}
     ports:
       - "8080:8080"
 
