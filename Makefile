@@ -5,7 +5,7 @@ MVNW := ./mvnw
 
 .DEFAULT_GOAL := help
 
-.PHONY: help run test verify package clean docker-up docker-down docker-logs
+.PHONY: help run test verify package clean docker-up docker-down docker-logs e2e docker-integration-test
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t/'
@@ -33,3 +33,8 @@ docker-down: ## Stop the Docker Compose services
 
 docker-logs: ## Follow backend Docker Compose logs
 	cd $(BACKEND_DIR) && docker compose logs -f backend
+
+e2e: ## Build the root Docker Compose stack and run end-to-end API tests
+	cd $(BACKEND_DIR) && RUN_DOCKER_COMPOSE_TESTS=true ./mvnw -B -Dtest=DockerComposeApiIntegrationTest test
+
+docker-integration-test: e2e ## Alias for the end-to-end Docker Compose test command

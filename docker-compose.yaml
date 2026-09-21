@@ -33,4 +33,4 @@ services:
 
 volumes:
   moneyquest-pgdata:
-    name: moneyquest-pgdata
+    name: ${MONEYQUEST_PGDATA_VOLUME:-moneyquest-pgdata}

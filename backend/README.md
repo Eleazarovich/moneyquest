@@ -55,3 +55,15 @@ The Docker Compose backend runs with `SPRING_PROFILES_ACTIVE=prod` and passes th
 PostgreSQL connection settings through environment variables. Production
 deployments should provide their own `DATABASE_PASSWORD` and
 `MONEYQUEST_JWT_SECRET` instead of the development values in the compose file.
+
+Run the end-to-end API tests against the repository-root `docker-compose.yaml`:
+
+```bash
+make e2e
+```
+
+The command builds an isolated Compose project and PostgreSQL volume, runs the
+black-box HTTP tests, and removes the test stack afterwards. The suite covers
+startup and Flyway seeding, public configuration, anonymous and account
+bootstrap, bearer-token ownership, month and decision transitions, validation,
+analytics, what-if/replay flows, and persistence across an app restart.
